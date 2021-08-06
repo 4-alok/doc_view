@@ -5,7 +5,7 @@ class DocView {
   static const MethodChannel _channel = const MethodChannel('doc_view');
   static const String _pageCount = "pageCount";
   static const String _getImage = "getImage";
-  static const String _genThumbnail = "genThumbnail";
+  static const String _genThumbnail = "genThumbs";
   static const String _fetchText = "fetchText";
 
   static Future<int> pageCount(String path) async {

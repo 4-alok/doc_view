@@ -1,5 +1,7 @@
 package dev.pub.doc_view.doc_view
 
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -16,7 +18,7 @@ const val FETCH_TEXT:String = "fetchText"
 
 /** DocViewPlugin */
 class DocViewPlugin: FlutterPlugin, MethodCallHandler {
-    private var renderFile:File? = null
+    private var file:File? = null
     private var fileType: String = ""
     private lateinit var channel : MethodChannel
     private lateinit var context :  android.content.Context
@@ -38,7 +40,11 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
             singleThreadTask(call, PAGE_COUNT, result)
         }
         GEN_THUMBS -> {
-            result.notImplemented()
+            initFile(call.argument<String>("path")!!)
+            val thread = Thread(
+                GenerateThumbnails(file!!, result, call, context)
+            )
+            thread.start()
         }
         FETCH_TEXT -> {
             initFile(call.argument<String>("path")!!)
@@ -50,16 +56,15 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
     }
   }
     private fun initFile(path: String) {
-        if(renderFile == null || fileType != path.split(".").last()){
-            renderFile = File(path)
+        if(file == null || fileType != path.split(".").last()){
+            file = File(path)
             fileType = path.split(".").last()
-            android.util.Log.d("Android", "Loaded file")
         }
     }
 
     private fun singleThreadTask(@NonNull call: MethodCall, task: String, result: Result){
         val thread = Thread(
-            SingleThreadTask(call, task, result, context, renderFile!!)
+            SingleThreadTask(call, task, result, context, file!!)
         )
         thread.start()
     }
@@ -83,7 +88,10 @@ class SingleThreadTask(
                 PDFBoxResourceLoader.init(context);
                 when (task) {
                     PAGE_COUNT -> {
-                        PdfTask.pageCount(file, result)
+                        val pageCount:Int = PdfTask.pageCount(file)
+                        Handler(Looper.getMainLooper()).post {
+                            result.success(pageCount)
+                        }
                     }
                     GET_IMAGE -> {
                         PdfTask.getPageImage(

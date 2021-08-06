@@ -13,7 +13,7 @@ class TestPage extends StatefulWidget {
 class _TestPageState extends State<TestPage> {
   Future<void> task(FileSystemEntity e) async {
     if (await e.exists()) {
-      final text = await DocView.fetchText(e.path, 2);
+      final text = await DocView.genThumbnail(e.path);
       // print(text);
     }
   }
@@ -26,7 +26,8 @@ class _TestPageState extends State<TestPage> {
         actions: [
           TextButton(
               onPressed: () async {
-                await DocView.getImage("/storage/emulated/0/test/TaGR.pdf", 1);
+                var result = await DocView.genThumbnail("/storage/emulated/0/test/TaGR.pdf");
+                print(result);
               },
               child: Text("Gen Image"))
         ],
