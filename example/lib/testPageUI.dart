@@ -12,7 +12,7 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage> {
   Future<void> task(FileSystemEntity e) async {
-    if (await e.exists()) {      
+    if (await e.exists()) {
       final text = await DocView.fetchText(e.path, 2);
       // print(text);
     }
@@ -24,9 +24,11 @@ class _TestPageState extends State<TestPage> {
       appBar: AppBar(
         title: Text("Test Page"),
         actions: [
-          TextButton(onPressed: () async {
-            await DocView.getImage("/storage/emulated/0/test/TaGR.pdf", 1);
-          }, child: Text("Gen Image"))
+          TextButton(
+              onPressed: () async {
+                await DocView.getImage("/storage/emulated/0/test/TaGR.pdf", 1);
+              },
+              child: Text("Gen Image"))
         ],
       ),
       body: Container(
@@ -47,7 +49,7 @@ class _TestPageState extends State<TestPage> {
                 onTap: () async {
                   final File file =
                       File("/storage/emulated/0/test/YOGA_ASSIGNMENT.docx");
-                      await task(file);
+                  await task(file);
                 },
               ),
             ),

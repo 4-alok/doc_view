@@ -1,7 +1,5 @@
 package dev.pub.doc_view.doc_view
 
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.NonNull
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -83,22 +81,23 @@ class SingleThreadTask(
         when (val fileType: String = path.split(".").last()) {
             "pdf" -> {
                 PDFBoxResourceLoader.init(context);
-                if (task == PAGE_COUNT){
-                    val pageCount: Int = PdfTask.pageCount(file)
-                    Handler(Looper.getMainLooper()).post {
-                        result.success(pageCount)
+                when (task) {
+                    PAGE_COUNT -> {
+                        PdfTask.pageCount(file, result)
                     }
-                } else if (task == GET_IMAGE) {
-                    val index:Int = call.argument<Int>("index")!!
-                    PdfTask.getPageImage(index, file)
-                    Handler(Looper.getMainLooper()).post {
-                        result.success(index)
+                    GET_IMAGE -> {
+                        PdfTask.getPageImage(
+                            call.argument<Int>("index")!!,
+                            file,
+                            result
+                        )
                     }
-                } else if (task == FETCH_TEXT){
-                    val index:Int = call.argument<Int>("index")!!
-                    val text:String = PdfTask.fetchText(index, file)
-                    Handler(Looper.getMainLooper()).post {
-                        result.success(text)
+                    FETCH_TEXT -> {
+                        PdfTask.fetchText(
+                            call.argument<Int>("index")!!,
+                            file,
+                            result
+                        )
                     }
                 }
             }

@@ -20,7 +20,6 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-
   Future<void> genThumbnail(FileSystemEntity file) async {
     if (await file.exists()) {
       final Directory dir = Directory(file.path.split(".").first);

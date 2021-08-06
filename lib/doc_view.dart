@@ -27,10 +27,8 @@ class DocView {
   }
 
   static Future<String> fetchText(String path, int index) async {
-    print(DateTime.now());
     final String result = await _channel.invokeMethod(
         DocView._fetchText, <String, dynamic>{'path': path, 'index': index});
-    print(DateTime.now());
     return result;
   }
 }
