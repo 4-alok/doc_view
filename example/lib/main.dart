@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:doc_view_example/file_manager_page/FileManagerPage.dart';
-import 'package:file_manager/file_manager.dart';
+// import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
+
+import 'testPageUI.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,7 +20,6 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-  final FileManagerController controller = FileManagerController();
 
   Future<void> genThumbnail(FileSystemEntity file) async {
     if (await file.exists()) {
@@ -31,10 +31,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.dark,
-        ),
-        home: FileManagerPage());
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+      ),
+      home: TestPage(),
+    );
   }
 }
