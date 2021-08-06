@@ -70,16 +70,30 @@ class PdfTask {
         @JvmStatic
         fun generatePdfThumbs(pdfRenderer: PDFRenderer, start: Int, end: Int, path: String) {
             for (i in start until end) {
-                val image: Bitmap = pdfRenderer.renderImageWithDPI(
-                    i,
-                    100F
-                )
-                val imgPath = "$path/thumb-$i.png"
-                val stream: OutputStream = FileOutputStream(imgPath)
-                image.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                stream.flush()
-                stream.close()
+                try {
+                    val image: Bitmap = pdfRenderer.renderImageWithDPI(i, 100F)
+                    val imgPath = "$path/$i.png"
+                    if (!File(imgPath).exists()) {
+                        val stream: OutputStream = FileOutputStream(imgPath)
+                        image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        stream.flush()
+                        stream.close()
+                    }
+                } catch (e: IOException){
+                    android.util.Log.d("Error GP", e.toString())
+                }
             }
         }
+    }
+}
+
+class GenThumbs(
+    private val pdfRenderer: PDFRenderer,
+    private val start: Int,
+    private val  end: Int,
+    private val path: String
+    ) : Runnable {
+    override fun run() {
+        PdfTask.generatePdfThumbs(pdfRenderer, start, end, path)
     }
 }

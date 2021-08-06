@@ -10,6 +10,10 @@ import io.flutter.plugin.common.MethodChannel
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import io.flutter.plugin.common.MethodCall
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class GenerateThumbnails(
     @NonNull private val file: File,
@@ -28,16 +32,43 @@ class GenerateThumbnails(
                 val cachePath:String = context.cacheDir.path
                 val code:String = file.path.hashCode().toString()
                 val dir = File("/storage/emulated/0/test/$code")
+
                 if(!dir.exists()){
                     dir.mkdir()
                 }
 
-                PdfTask.generatePdfThumbs(pdfRenderer, 0, pageCount, dir.path)
-                Handler(Looper.getMainLooper()).post {
-                    result.success(dir.path)
-                }
-                doc.close()
+                if ( pageCount < 50 ) {
+                    PdfTask.generatePdfThumbs(pdfRenderer, 0, pageCount, dir.path)
+                } else {
 
+                    val threadCount:Int = Runtime.getRuntime().availableProcessors()/2
+                    val pool: ExecutorService = Executors.newFixedThreadPool(threadCount)
+
+                    val quotient:Int = pageCount % threadCount
+                    var pageIndex:Int = pageCount % threadCount
+                    var startIndex = 0
+
+                    for (i in 1 until threadCount){
+                        Log.d(startIndex.toString(), pageIndex.toString())
+//                        pool.execute(GenThumbs(pdfRenderer, startIndex, pageIndex, dir.path))
+                        Log.d("--------------> Range", "$startIndex  -  $pageIndex")
+                        startIndex = (pageIndex++)
+                        pageIndex += quotient
+                    }
+//                    GenThumbs(pdfRenderer, startIndex, pageCount, dir.path)
+                    Log.d("--------------> Range", "$startIndex  -  $pageIndex")
+                    try {
+                        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                    } catch (e:InterruptedException) {
+                        Log.d("Execute error", e.toString())
+                    } finally {
+                        doc.close()
+                    }
+                }
+
+                Handler(Looper.getMainLooper()).post {
+                    result.success("Done")
+                }
             }
             "docx" -> {
                 Log.d("Android", fileType)

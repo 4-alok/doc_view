@@ -55,6 +55,7 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
   }
+
     private fun initFile(path: String) {
         if(file == null || fileType != path.split(".").last()){
             file = File(path)
@@ -110,10 +111,10 @@ class SingleThreadTask(
                 }
             }
             "docx" -> {
-                android.util.Log.d("Android", fileType + "No task")
+                android.util.Log.d("Android", "$fileType Not implementer")
             }
             "ppt" -> {
-                android.util.Log.d("Android", fileType + "No task")
+                android.util.Log.d("Android", "$fileType Not implementer")
             }
         }
     }
