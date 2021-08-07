@@ -2,7 +2,6 @@ package dev.pub.doc_view.doc_view
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.NonNull
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.rendering.PDFRenderer
@@ -10,7 +9,6 @@ import io.flutter.plugin.common.MethodChannel
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import io.flutter.plugin.common.MethodCall
 import java.io.File
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -29,53 +27,56 @@ class GenerateThumbnails(
                 val doc: PDDocument = PDDocument.load(file)
                 val pageCount:Int = PdfTask.pageCount(file)
                 val pdfRenderer = PDFRenderer(doc)
-                val cachePath:String = context.cacheDir.path
+//                val cachePath:String = context.cacheDir.path
                 val code:String = file.path.hashCode().toString()
                 val dir = File("/storage/emulated/0/test/$code")
 
-                if(!dir.exists()){
-                    dir.mkdir()
-                }
+                createDir(dir)
 
                 if ( pageCount < 50 ) {
                     PdfTask.generatePdfThumbs(pdfRenderer, 0, pageCount, dir.path)
                 } else {
-
                     val threadCount:Int = Runtime.getRuntime().availableProcessors()/2
-                    val pool: ExecutorService = Executors.newFixedThreadPool(threadCount)
 
-                    val quotient:Int = pageCount % threadCount
-                    var pageIndex:Int = pageCount % threadCount
-                    var startIndex = 0
+                    val pool: ExecutorService = Executors.newFixedThreadPool(threadCount/2)
+
+                    val quotient:Int = pageCount / threadCount
+                    var start = 0
+                    var end = quotient
+                    val remaining = pageCount - (pageCount%threadCount)
 
                     for (i in 1 until threadCount){
-                        Log.d(startIndex.toString(), pageIndex.toString())
-//                        pool.execute(GenThumbs(pdfRenderer, startIndex, pageIndex, dir.path))
-                        Log.d("--------------> Range", "$startIndex  -  $pageIndex")
-                        startIndex = (pageIndex++)
-                        pageIndex += quotient
+                        pool.execute(GenThumbs(pdfRenderer, start, end, dir.path))
+                        start = end + 1
+                        end += end
                     }
-//                    GenThumbs(pdfRenderer, startIndex, pageCount, dir.path)
-                    Log.d("--------------> Range", "$startIndex  -  $pageIndex")
+                    if(remaining < pageCount) {
+                        PdfTask.generatePdfThumbs(pdfRenderer, remaining+1, pageCount - 1, dir.path)
+                    }
                     try {
                         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                    } catch (e:InterruptedException) {
-                        Log.d("Execute error", e.toString())
-                    } finally {
                         doc.close()
+                    } catch (e:InterruptedException) {
+                        android.util.Log.d("Execute error", e.toString())
                     }
                 }
-
                 Handler(Looper.getMainLooper()).post {
+                    android.util.Log.d("Task", "------------Done")
                     result.success("Done")
                 }
             }
             "docx" -> {
-                Log.d("Android", fileType)
+                android.util.Log.d("Android", fileType)
             }
             "ppt" -> {
-                Log.d("Android", fileType)
+                android.util.Log.d("Android", fileType)
             }
+        }
+    }
+
+    private fun createDir(dir:File){
+        if(!dir.exists()){
+            dir.mkdir()
         }
     }
 }

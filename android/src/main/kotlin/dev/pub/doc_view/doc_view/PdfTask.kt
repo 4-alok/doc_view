@@ -69,9 +69,9 @@ class PdfTask {
 
         @JvmStatic
         fun generatePdfThumbs(pdfRenderer: PDFRenderer, start: Int, end: Int, path: String) {
-            for (i in start until end) {
+            for (i in start..end) {
                 try {
-                    val image: Bitmap = pdfRenderer.renderImageWithDPI(i, 100F)
+                    val image: Bitmap = pdfRenderer.renderImageWithDPI(i, 20F)
                     val imgPath = "$path/$i.png"
                     if (!File(imgPath).exists()) {
                         val stream: OutputStream = FileOutputStream(imgPath)
