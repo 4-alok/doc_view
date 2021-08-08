@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit
 class GenerateThumbnails(
     @NonNull private val file: File,
     @NonNull private val result: MethodChannel.Result,
-    @NonNull call: MethodCall,
     @NonNull private val context:  android.content.Context
     ): Runnable {
 
@@ -53,17 +52,16 @@ class GenerateThumbnails(
                     if(remaining < pageCount) {
                         PdfTask.generatePdfThumbs(pdfRenderer, remaining+1, pageCount - 1, dir.path)
                     }
+                    pool.shutdown()
                     try {
                         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
                         doc.close()
                     } catch (e:InterruptedException) {
                         android.util.Log.d("Execute error", e.toString())
                     }
+                    taskDone(result)
                 }
-                Handler(Looper.getMainLooper()).post {
-                    android.util.Log.d("Task", "------------Done")
-                    result.success("Done")
-                }
+
             }
             "docx" -> {
                 android.util.Log.d("Android", fileType)
@@ -77,6 +75,13 @@ class GenerateThumbnails(
     private fun createDir(dir:File){
         if(!dir.exists()){
             dir.mkdir()
+        }
+    }
+
+    private fun taskDone(result: MethodChannel.Result) {
+        Handler(Looper.getMainLooper()).post {
+            android.util.Log.d("Task", "------------Done")
+            result.success("Done")
         }
     }
 }
