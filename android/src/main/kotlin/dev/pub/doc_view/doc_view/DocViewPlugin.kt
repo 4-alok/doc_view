@@ -42,7 +42,7 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
         GEN_THUMBS -> {
             initFile(call.argument<String>("path")!!)
             val thread = Thread(
-                GenerateThumbnails(file!!, result, call, context)
+                GenerateThumbnails(file!!, result, context)
             )
             thread.start()
         }
@@ -55,6 +55,7 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
   }
+
     private fun initFile(path: String) {
         if(file == null || fileType != path.split(".").last()){
             file = File(path)
@@ -70,6 +71,7 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
     }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    file = null
     channel.setMethodCallHandler(null)
   }
 }
@@ -110,10 +112,10 @@ class SingleThreadTask(
                 }
             }
             "docx" -> {
-                android.util.Log.d("Android", fileType + "No task")
+                android.util.Log.d("Android", "$fileType Not implementer")
             }
             "ppt" -> {
-                android.util.Log.d("Android", fileType + "No task")
+                android.util.Log.d("Android", "$fileType Not implementer")
             }
         }
     }
