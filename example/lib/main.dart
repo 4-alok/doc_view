@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
-// import 'package:file_manager/file_manager.dart';
+import 'package:doc_view_example/home_page/home_page.dart';
 import 'package:flutter/material.dart';
-
-import 'testPageUI.dart';
 
 void main() {
   runApp(MyApp());
@@ -34,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         brightness: Brightness.dark,
       ),
-      home: TestPage(),
+      home: HomePage()
     );
   }
 }
