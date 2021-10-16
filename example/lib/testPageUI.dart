@@ -20,6 +20,7 @@ class _TestPageState extends State<TestPage> {
 
   @override
   Widget build(BuildContext context) {
+    //Example scaffold
     return Scaffold(
       appBar: AppBar(
         title: Text("Test Page"),
