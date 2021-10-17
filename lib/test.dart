@@ -1,7 +1,7 @@
 void main() {
   int pageCount = 857;
   int thread = 4;
-
+// pageCount will be assined to diffrent tread 
   int quotiant = pageCount ~/ thread;
 
   int start = 0;
