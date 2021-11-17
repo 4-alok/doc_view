@@ -37,7 +37,6 @@ android {
 }
 
 dependencies {
-    //noinspection GradleDependency
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.tom-roush:pdfbox-android:2.0.1.0'
     implementation 'androidx.multidex:multidex:2.0.1'

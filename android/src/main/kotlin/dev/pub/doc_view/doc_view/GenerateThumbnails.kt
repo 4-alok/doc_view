@@ -6,8 +6,6 @@ import androidx.annotation.NonNull
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.rendering.PDFRenderer
 import io.flutter.plugin.common.MethodChannel
-import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
-import io.flutter.plugin.common.MethodCall
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -16,16 +14,15 @@ import java.util.concurrent.TimeUnit
 class GenerateThumbnails(
     @NonNull private val file: File,
     @NonNull private val result: MethodChannel.Result,
-    @NonNull private val context:  android.content.Context
+    @NonNull private val context:  android.content.Context,
+    private val document: PDDocument
     ): Runnable {
 
     override fun run() {
         when (val fileType: String = file.path.split(".").last()) {
             "pdf" -> {
-                PDFBoxResourceLoader.init(context);
-                val doc: PDDocument = PDDocument.load(file)
-                val pageCount:Int = PdfTask.pageCount(file)
-                val pdfRenderer = PDFRenderer(doc)
+                val pageCount:Int = PdfTask.pageCount(document)
+                val pdfRenderer = PDFRenderer(document)
 //                val cachePath:String = context.cacheDir.path
                 val code:String = file.path.hashCode().toString()
                 val dir = File("/storage/emulated/0/test/$code")
@@ -36,7 +33,6 @@ class GenerateThumbnails(
                     PdfTask.generatePdfThumbs(pdfRenderer, 0, pageCount, dir.path)
                 } else {
                     val threadCount:Int = Runtime.getRuntime().availableProcessors()/2
-
                     val pool: ExecutorService = Executors.newFixedThreadPool(threadCount/2)
 
                     val quotient:Int = pageCount / threadCount
@@ -55,7 +51,6 @@ class GenerateThumbnails(
                     pool.shutdown()
                     try {
                         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                        doc.close()
                     } catch (e:InterruptedException) {
                         android.util.Log.d("Execute error", e.toString())
                     }

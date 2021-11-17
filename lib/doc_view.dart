@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class DocView {
@@ -34,5 +36,52 @@ class DocView {
     final String result = await _channel.invokeMethod(
         DocView._fetchText, <String, dynamic>{'path': path, 'index': index});
     return result;
+  }
+}
+
+class DocViewer extends StatefulWidget {
+  final String path;
+  DocViewer({
+    required this.path,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _DocViewerState createState() => _DocViewerState();
+}
+
+class _DocViewerState extends State<DocViewer> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+        future: DocView.pageCount(widget.path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return PageView.builder(
+              itemCount: snapshot.data,
+              itemBuilder: (context, index) {
+                return FutureBuilder<dynamic>(
+                  future: DocView.getImage(widget.path, index),
+                  builder: (context, imgSnapshot) {
+                    if (imgSnapshot.hasData) {
+                      final Uint8List img = imgSnapshot.data;
+                      return Image.memory(img);
+                    } else if (snapshot.hasError) {
+                      return Container(
+                        child: Center(child: Text(snapshot.error.toString())),
+                      );
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  },
+                );
+              },
+            );
+          } else {
+            return Container(
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+        });
   }
 }

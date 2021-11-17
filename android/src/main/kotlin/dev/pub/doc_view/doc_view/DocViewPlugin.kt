@@ -3,6 +3,8 @@ package dev.pub.doc_view.doc_view
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.NonNull
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.rendering.PDFRenderer
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -19,6 +21,7 @@ const val FETCH_TEXT:String = "fetchText"
 /** DocViewPlugin */
 class DocViewPlugin: FlutterPlugin, MethodCallHandler {
     private var file:File? = null
+    private var document: PDDocument? = null
     private var fileType: String = ""
     private lateinit var channel : MethodChannel
     private lateinit var context :  android.content.Context
@@ -42,7 +45,7 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
         GEN_THUMBS -> {
             initFile(call.argument<String>("path")!!)
             val thread = Thread(
-                GenerateThumbnails(file!!, result, context)
+                GenerateThumbnails(file!!, result, context, document!!)
             )
             thread.start()
         }
@@ -60,18 +63,24 @@ class DocViewPlugin: FlutterPlugin, MethodCallHandler {
         if(file == null || fileType != path.split(".").last()){
             file = File(path)
             fileType = path.split(".").last()
+            if (fileType == "pdf"){
+                PDFBoxResourceLoader.init(context);
+                document = PDDocument.load(file)
+            }
+
         }
     }
 
     private fun singleThreadTask(@NonNull call: MethodCall, task: String, result: Result){
         val thread = Thread(
-            SingleThreadTask(call, task, result, context, file!!)
+            SingleThreadTask(call, task, result, context, file!!, document)
         )
         thread.start()
     }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     file = null
+    document = null
     channel.setMethodCallHandler(null)
   }
 }
@@ -81,16 +90,16 @@ class SingleThreadTask(
     private val task: String,
     private val result: Result,
     private val context:  android.content.Context,
-    private val file:File
+    private val file:File,
+    private val document: PDDocument?
     ): Runnable {
     override fun run() {
         val path:String = call.argument<String>("path")!!
         when (val fileType: String = path.split(".").last()) {
             "pdf" -> {
-                PDFBoxResourceLoader.init(context);
                 when (task) {
                     PAGE_COUNT -> {
-                        val pageCount:Int = PdfTask.pageCount(file)
+                        val pageCount:Int = PdfTask.pageCount(document!!)
                         Handler(Looper.getMainLooper()).post {
                             result.success(pageCount)
                         }
@@ -98,7 +107,7 @@ class SingleThreadTask(
                     GET_IMAGE -> {
                         PdfTask.getPageImage(
                             call.argument<Int>("index")!!,
-                            file,
+                            document!!,
                             result
                         )
                     }
